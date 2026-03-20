@@ -7,7 +7,7 @@ import path from 'path'
 
 dotenv.config()
 
-import { errorMiddleware } from '../middleware/error.middleware'
+import { errorMiddleware } from './middleware/error.middleware'
 
 const app = express()
 const PORT = process.env.PORT || 8000
@@ -35,7 +35,7 @@ app.get('/health', (req, res) => {
 })
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,
