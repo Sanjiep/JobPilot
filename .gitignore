@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.DS_Store
+client/.next/
+client/out/
+server/dist/
+server/uploads/
+server/screenshots/
+*.log
+.vscode/
+coverage/
