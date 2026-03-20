@@ -8,6 +8,7 @@ import path from 'path'
 dotenv.config()
 
 import { errorMiddleware } from './middleware/error.middleware'
+import authRoutes from './routes/auth.routes'
 
 const app = express()
 const PORT = process.env.PORT || 8000
@@ -33,6 +34,9 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   })
 })
+
+// API Routes
+app.use('/api/auth', authRoutes)
 
 // 404 handler
 app.use((req, res) => {
