@@ -64,3 +64,28 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
       currentStep: Math.max(state.currentStep - 1, 1),
     })),
 }))
+
+interface ThemeStore {
+  dark: boolean
+  toggleTheme: () => void
+}
+
+export const useThemeStore = create<ThemeStore>()(
+  persist(
+    (set) => ({
+      dark: true,
+      toggleTheme: () => {
+        set((state) => {
+          const newDark = !state.dark
+          if (newDark) {
+            document.documentElement.classList.add('dark')
+          } else {
+            document.documentElement.classList.remove('dark')
+          }
+          return { dark: newDark }
+        })
+      },
+    }),
+    { name: 'jobpilot_theme' },
+  ),
+)

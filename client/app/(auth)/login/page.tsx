@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
-import { useAuthStore } from "@/lib/store";
+import { useAuthStore, useThemeStore } from "@/lib/store";
 import Logo from "@/components/ui/logo";
 
 const cyclingWords = [
@@ -106,7 +106,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [dark, setDark] = useState(true);
+  const { dark, toggleTheme } = useThemeStore();
   const [showPassword, setShowPassword] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
   const [visible, setVisible] = useState(true);
@@ -121,11 +121,6 @@ export default function LoginPage() {
     }, 2000);
     return () => clearInterval(interval);
   }, []);
-
-  const toggleTheme = () => {
-    setDark(!dark);
-    document.documentElement.classList.toggle("dark");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
