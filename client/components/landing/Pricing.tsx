@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { useThemeStore } from '@/lib/store'
 
 const plans = [
@@ -87,6 +88,31 @@ const XIcon = () => (
   </svg>
 )
 
+const headerVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+}
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.12 },
+  },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+}
+
 export default function Pricing() {
   const { dark } = useThemeStore()
   const [yearly, setYearly] = useState(false)
@@ -104,7 +130,13 @@ export default function Pricing() {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div
+          className="text-center mb-12"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-4"
             style={{
@@ -123,8 +155,10 @@ export default function Pricing() {
           </p>
 
           {/* Toggle */}
-          <div className="inline-flex items-center gap-3 p-1 rounded-xl"
-            style={{ background: dark ? '#0e0e1a' : '#f5f5ff', border: `1px solid ${border}` }}>
+          <div
+            className="inline-flex items-center gap-1 p-1 rounded-xl"
+            style={{ background: dark ? '#0e0e1a' : '#f5f5ff', border: `1px solid ${border}` }}
+          >
             <button
               onClick={() => setYearly(false)}
               className="px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer"
@@ -144,20 +178,30 @@ export default function Pricing() {
               }}
             >
               Yearly
-              <span className="text-xs px-2 py-0.5 rounded-full"
-                style={{ background: '#34d39920', color: '#34d399' }}>
+              <span
+                className="text-xs px-2 py-0.5 rounded-full"
+                style={{ background: '#34d39920', color: '#34d399' }}
+              >
                 Save 20%
               </span>
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
           {plans.map((plan, i) => (
-            <div
+            <motion.div
               key={i}
-              className="relative rounded-2xl p-8 transition-all"
+              variants={cardVariants}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              className="relative rounded-2xl p-8"
               style={{
                 background: plan.popular
                   ? dark ? '#111128' : '#f0f0ff'
@@ -219,8 +263,10 @@ export default function Pricing() {
               <div className="space-y-3">
                 {plan.features.map((f, j) => (
                   <div key={j} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: '#34d39920', color: '#34d399' }}>
+                    <div
+                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: '#34d39920', color: '#34d399' }}
+                    >
                       <CheckIcon />
                     </div>
                     <span className="text-sm" style={{ color: textMuted }}>{f}</span>
@@ -228,22 +274,31 @@ export default function Pricing() {
                 ))}
                 {plan.notIncluded.map((f, j) => (
                   <div key={j} className="flex items-center gap-3 opacity-40">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: border, color: textMuted }}>
+                    <div
+                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: border, color: textMuted }}
+                    >
                       <XIcon />
                     </div>
                     <span className="text-sm" style={{ color: textMuted }}>{f}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Bottom note */}
-        <p className="text-center text-sm mt-8" style={{ color: textMuted }}>
+        <motion.p
+          className="text-center text-sm mt-8"
+          style={{ color: textMuted }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
           All plans include a 7-day free trial. No credit card required to start.
-        </p>
+        </motion.p>
       </div>
     </section>
   )

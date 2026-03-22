@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { useThemeStore } from '@/lib/store'
 
 const testimonials = [
@@ -59,6 +60,31 @@ const StarIcon = () => (
   </svg>
 )
 
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.1 },
+  },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+}
+
+const headerVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+}
+
 export default function Testimonials() {
   const { dark } = useThemeStore()
 
@@ -75,7 +101,13 @@ export default function Testimonials() {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-4"
             style={{
@@ -92,14 +124,22 @@ export default function Testimonials() {
           <p className="text-lg max-w-xl mx-auto" style={{ color: textMuted }}>
             Here's what job seekers say about using JobPilot.
           </p>
-        </div>
+        </motion.div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
           {testimonials.map((t, i) => (
-            <div
+            <motion.div
               key={i}
-              className="rounded-2xl p-6 flex flex-col gap-4"
+              variants={cardVariants}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="rounded-2xl p-6 flex flex-col gap-4 cursor-default"
               style={{
                 background: dark ? '#111120' : '#ffffff',
                 border: `1px solid ${border}`,
@@ -132,9 +172,9 @@ export default function Testimonials() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

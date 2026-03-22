@@ -1,7 +1,7 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { useThemeStore } from '@/lib/store'
-import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 
 const steps = [
   {
@@ -56,42 +56,33 @@ const steps = [
   },
 ]
 
-// Separate component so hooks are called at top level
-function StepCard({ step, index, border, cardBg, textPrimary, textMuted }: any) {
-  const { ref, visible } = useScrollAnimation()
-  return (
-    <div
-      ref={ref}
-      className={`animate-on-scroll ${visible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${index * 0.15}s` }}
-    >
-      <div
-        className="relative rounded-2xl p-6 h-full"
-        style={{ background: cardBg, border: `1px solid ${border}` }}
-      >
-        <div className="text-xs font-bold mb-4" style={{ color: step.color }}>
-          {step.number}
-        </div>
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-          style={{ background: `${step.color}15`, color: step.color }}
-        >
-          {step.icon}
-        </div>
-        <h3 className="text-lg font-bold mb-2" style={{ color: textPrimary }}>
-          {step.title}
-        </h3>
-        <p className="text-sm leading-relaxed" style={{ color: textMuted }}>
-          {step.description}
-        </p>
-      </div>
-    </div>
-  )
+const headerVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+}
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.15 },
+  },
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
 }
 
 export default function HowItWorks() {
   const { dark } = useThemeStore()
-  const { ref: headerRef, visible: headerVisible } = useScrollAnimation()
 
   const textPrimary = dark ? '#ffffff' : '#0a0a14'
   const textMuted = dark ? '#9090b0' : '#4a4a6a'
@@ -107,9 +98,12 @@ export default function HowItWorks() {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div
-          ref={headerRef}
-          className={`text-center mb-16 animate-on-scroll ${headerVisible ? 'visible' : ''}`}
+        <motion.div
+          className="text-center mb-16"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
         >
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-4"
@@ -127,22 +121,45 @@ export default function HowItWorks() {
           <p className="text-lg max-w-2xl mx-auto" style={{ color: textMuted }}>
             JobPilot handles the entire application process so you can focus on preparing for interviews.
           </p>
-        </div>
+        </motion.div>
 
         {/* Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
           {steps.map((step, i) => (
-            <StepCard
+            <motion.div
               key={i}
-              step={step}
-              index={i}
-              border={border}
-              cardBg={cardBg}
-              textPrimary={textPrimary}
-              textMuted={textMuted}
-            />
+              variants={cardVariants}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              className="relative rounded-2xl p-6 h-full cursor-default"
+              style={{ background: cardBg, border: `1px solid ${border}` }}
+            >
+              <div
+                className="text-xs font-bold mb-4"
+                style={{ color: step.color }}
+              >
+                {step.number}
+              </div>
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                style={{ background: `${step.color}15`, color: step.color }}
+              >
+                {step.icon}
+              </div>
+              <h3 className="text-lg font-bold mb-2" style={{ color: textPrimary }}>
+                {step.title}
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: textMuted }}>
+                {step.description}
+              </p>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )
