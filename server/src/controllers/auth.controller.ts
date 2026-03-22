@@ -52,7 +52,14 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
     res.status(201).json({
       success: true,
       message: 'Account created successfully',
-      data: { user, token },
+      data: {
+        token,
+        user: {
+          ...user,
+          firstName,
+          lastName,
+        },
+      },
     })
   } catch (error) {
     next(error)
@@ -77,6 +84,12 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         onboardingCompleted: true,
         onboardingStep: true,
         createdAt: true,
+        profile: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     })
 
@@ -89,12 +102,19 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
     const token = generateToken(user.id, user.email)
 
-    const { hashedPassword, ...userWithoutPassword } = user
+    const { hashedPassword, profile, ...rest } = user
 
     res.json({
       success: true,
       message: 'Logged in successfully',
-      data: { user: userWithoutPassword, token },
+      data: {
+        token,
+        user: {
+          ...rest,
+          firstName: profile?.firstName ?? '',
+          lastName: profile?.lastName ?? '',
+        },
+      },
     })
   } catch (error) {
     next(error)
