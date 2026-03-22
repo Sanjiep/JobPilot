@@ -282,9 +282,7 @@ const ALL_LANGUAGES = [
 
 const LEVELS = [
   "Beginner",
-  "Elementary",
   "Intermediate",
-  "Upper Intermediate",
   "Advanced",
   "Native",
 ];

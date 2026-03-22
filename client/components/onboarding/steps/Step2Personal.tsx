@@ -11,6 +11,7 @@ interface Props {
   textPrimary: string;
   textMuted: string;
   border: string;
+  isRevisit?: boolean
 }
 
 interface FormData {
@@ -874,6 +875,7 @@ export default function Step2Personal({
   textPrimary,
   textMuted,
   border,
+  isRevisit
 }: Props) {
   const extracted = data?.extractedData || {};
   const saved = data?.personal || {};
@@ -1279,7 +1281,7 @@ export default function Step2Personal({
             color: valid ? "#ffffff" : textMuted,
           }}
         >
-          Continue →
+          {isRevisit ? 'Next →' : 'Continue →'}
         </button>
       </motion.div>
     </div>
