@@ -6,6 +6,7 @@ import Link from "next/link";
 import api from "@/lib/api";
 import { useAuthStore, useThemeStore } from "@/lib/store";
 import Logo from "@/components/ui/logo";
+import { motion } from "framer-motion";
 
 const cyclingWords = [
   { text: "10x more", color: "#6366f1" },
@@ -169,72 +170,96 @@ export default function LoginPage() {
         </div>
 
         {/* Logo */}
-        <div className="relative z-10 flex items-center gap-3">
+        <motion.div
+          className="relative z-10 flex items-center gap-3"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           <Logo height={28} dark={dark} />
-        </div>
+        </motion.div>
 
         {/* Animated text */}
-        <div className="relative z-10 space-y-6">
-          <p className="text-lg font-medium" style={{ color: textMuted }}>
-            JobPilot helps you get
-          </p>
-
-          <div className="space-y-2">
-            <div
-              className="text-7xl font-bold leading-none"
-              style={{
-                color: cyclingWords[wordIndex].color,
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(-16px)",
-                transition: "opacity 0.4s ease, transform 0.4s ease",
-              }}
-            >
-              {cyclingWords[wordIndex].text}
-            </div>
-            <div
-              className="text-7xl font-bold leading-none"
-              style={{ color: textPrimary }}
-            >
-              job interviews
-            </div>
-          </div>
-
-          <p
-            className="text-base max-w-sm leading-relaxed"
-            style={{ color: textMuted }}
-          >
-            Upload your CV, set your preferences and JobPilot will automatically
-            apply to jobs on your behalf every single day.
-          </p>
-
-          {/* Social proof */}
-          <div className="flex items-center gap-3 pt-2">
-            <div className="flex -space-x-2">
-              {["#6366f1", "#a78bfa", "#38bdf8", "#34d399"].map((c, i) => (
-                <div
-                  key={i}
-                  className="w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold text-white"
-                  style={{ background: c, borderColor: bgLeft }}
-                >
-                  {String.fromCharCode(65 + i)}
-                </div>
-              ))}
-            </div>
-            <p className="text-sm font-semibold" style={{ color: "#6366f1" }}>
-              Trusted by 10,000+ job seekers worldwide
+        <motion.div
+          className="relative z-10 space-y-6"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <div className="relative z-10 space-y-6">
+            <p className="text-lg font-medium" style={{ color: textMuted }}>
+              JobPilot helps you get
             </p>
+
+            <div className="space-y-2">
+              <div
+                className="text-7xl font-bold leading-none"
+                style={{
+                  color: cyclingWords[wordIndex].color,
+                  opacity: visible ? 1 : 0,
+                  transform: visible ? "translateY(0)" : "translateY(-16px)",
+                  transition: "opacity 0.4s ease, transform 0.4s ease",
+                }}
+              >
+                {cyclingWords[wordIndex].text}
+              </div>
+              <div
+                className="text-7xl font-bold leading-none"
+                style={{ color: textPrimary }}
+              >
+                job interviews
+              </div>
+            </div>
+
+            <p
+              className="text-base max-w-sm leading-relaxed"
+              style={{ color: textMuted }}
+            >
+              Upload your CV, set your preferences and JobPilot will
+              automatically apply to jobs on your behalf every single day.
+            </p>
+
+            {/* Social proof */}
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex -space-x-2">
+                {[
+                  "https://randomuser.me/api/portraits/women/44.jpg",
+                  "https://randomuser.me/api/portraits/men/32.jpg",
+                  "https://randomuser.me/api/portraits/women/68.jpg",
+                  "https://randomuser.me/api/portraits/men/75.jpg",
+                ].map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt="User"
+                    className="w-9 h-9 rounded-full border-2 object-cover"
+                    style={{ borderColor: bgLeft }}
+                  />
+                ))}
+              </div>
+              <p className="text-sm font-semibold" style={{ color: "#6366f1" }}>
+                Trusted by 10,000+ job seekers worldwide
+              </p>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Bottom */}
-        <div className="relative z-10">
-          <p
-            className="text-xs"
-            style={{ color: dark ? "#505070" : "#8888aa" }}
-          >
-            © 2026 JobPilot. All rights reserved.
-          </p>
-        </div>
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <div className="relative z-10">
+            <p
+              className="text-xs"
+              style={{ color: dark ? "#505070" : "#8888aa" }}
+            >
+              © 2026 JobPilot. All rights reserved.
+            </p>
+          </div>
+        </motion.div>
       </div>
 
       {/* ── Right Side ── */}

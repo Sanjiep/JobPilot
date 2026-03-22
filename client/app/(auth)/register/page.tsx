@@ -7,6 +7,7 @@ import Logo from "@/components/ui/logo";
 import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { useThemeStore } from "@/lib/store";
+import { motion } from "framer-motion";
 
 const EyeIcon = () => (
   <svg
@@ -193,88 +194,114 @@ export default function RegisterPage() {
         </div>
 
         {/* Logo */}
-        <div className="relative z-10">
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+        >
           <Logo height={28} dark={dark} />
-        </div>
+        </motion.div>
 
         {/* Center content */}
-        <div className="relative z-10 space-y-8">
-          <div>
-            <h2
-              className="text-5xl font-bold leading-tight"
-              style={{ color: textPrimary }}
-            >
-              Start your journey to getting hired faster
-            </h2>
-            <p
-              className="text-base mt-4 leading-relaxed max-w-sm"
-              style={{ color: textMuted }}
-            >
-              Join thousands of job seekers who let JobPilot handle their
-              applications automatically.
-            </p>
-          </div>
-
-          {/* Features */}
-          <div className="space-y-4">
-            {[
-              "AI fills every job application for you",
-              "Custom cover letter for every job",
-              "Apply to 100+ jobs per day automatically",
-              "Track all applications in one place",
-              "Get notified when companies reply",
-            ].map((f, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: "#6366f1" }}
-                >
-                  <CheckIcon />
-                </div>
-                <span className="text-sm" style={{ color: textMuted }}>
-                  {f}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { value: "10,000+", label: "Job seekers" },
-              { value: "500+", label: "Job boards" },
-              { value: "92%", label: "ATS pass rate" },
-            ].map((s, i) => (
-              <div
-                key={i}
-                className="rounded-xl p-4 text-center"
-                style={{
-                  background: dark
-                    ? "rgba(255,255,255,0.05)"
-                    : "rgba(0,0,0,0.04)",
-                  border: `1px solid ${border}`,
-                }}
+        <motion.div
+          className="relative z-10 space-y-8"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <div className="relative z-10 space-y-8">
+            <div>
+              <h2
+                className="text-5xl font-bold leading-tight"
+                style={{ color: textPrimary }}
               >
-                <div className="text-xl font-bold" style={{ color: "#6366f1" }}>
-                  {s.value}
+                Start your journey to getting hired faster
+              </h2>
+              <p
+                className="text-base mt-4 leading-relaxed max-w-sm"
+                style={{ color: textMuted }}
+              >
+                Join thousands of job seekers who let JobPilot handle their
+                applications automatically.
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="space-y-4">
+              {[
+                "AI fills every job application for you",
+                "Custom cover letter for every job",
+                "Apply to 100+ jobs per day automatically",
+                "Track all applications in one place",
+                "Get notified when companies reply",
+              ].map((f, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ background: "#6366f1" }}
+                  >
+                    <CheckIcon />
+                  </div>
+                  <span className="text-sm" style={{ color: textMuted }}>
+                    {f}
+                  </span>
                 </div>
-                <div className="text-xs mt-1" style={{ color: textMuted }}>
-                  {s.label}
+              ))}
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { value: "10,000+", label: "Job seekers" },
+                { value: "500+", label: "Job boards" },
+                { value: "92%", label: "ATS pass rate" },
+              ].map((s, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl p-4 text-center"
+                  style={{
+                    background: dark
+                      ? "rgba(255,255,255,0.05)"
+                      : "rgba(0,0,0,0.04)",
+                    border: `1px solid ${border}`,
+                  }}
+                >
+                  <div
+                    className="text-xl font-bold"
+                    style={{ color: "#6366f1" }}
+                  >
+                    {s.value}
+                  </div>
+                  <div className="text-xs mt-1" style={{ color: textMuted }}>
+                    {s.label}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Bottom */}
-        <div className="relative z-10">
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
           <p
             className="text-xs"
             style={{ color: dark ? "#505070" : "#8888aa" }}
-          >
-            © 2026 JobPilot. All rights reserved.
-          </p>
-        </div>
+          ></p>
+          <div className="relative z-10">
+            <p
+              className="text-xs"
+              style={{ color: dark ? "#505070" : "#8888aa" }}
+            >
+              © 2026 JobPilot. All rights reserved.
+            </p>
+          </div>
+        </motion.div>
       </div>
 
       {/* ── Right Side ── */}
