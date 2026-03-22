@@ -168,20 +168,21 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
         >
           <div className="flex -space-x-2">
-            {["#6366f1", "#a78bfa", "#38bdf8", "#34d399", "#f59e0b"].map(
-              (c, i) => (
-                <div
-                  key={i}
-                  className="w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold text-white"
-                  style={{
-                    background: c,
-                    borderColor: dark ? "#070711" : "#ffffff",
-                  }}
-                >
-                  {String.fromCharCode(65 + i)}
-                </div>
-              ),
-            )}
+            {[
+              "https://randomuser.me/api/portraits/women/44.jpg",
+              "https://randomuser.me/api/portraits/men/32.jpg",
+              "https://randomuser.me/api/portraits/women/68.jpg",
+              "https://randomuser.me/api/portraits/men/75.jpg",
+              "https://randomuser.me/api/portraits/women/90.jpg",
+            ].map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt="User"
+                className="w-9 h-9 rounded-full border-2 object-cover"
+                style={{ borderColor: dark ? "#070711" : "#ffffff" }}
+              />
+            ))}
           </div>
           <div className="text-sm" style={{ color: textMuted }}>
             <span className="font-semibold" style={{ color: textPrimary }}>
