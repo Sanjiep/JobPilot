@@ -28,8 +28,14 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
 
     // 1. Save profile
     if (personal) {
+      const links = personal.links || []
+
+      const linkedinUrl  = links.find((l: any) => l.platform === 'linkedin')?.url  || null
+      const githubUrl    = links.find((l: any) => l.platform === 'github')?.url    || null
+      const websiteUrl   = links.find((l: any) => ['portfolio', 'other', 'dribbble', 'behance', 'twitter'].includes(l.platform))?.url || personal.website || null
+
       await prisma.profile.upsert({
-        where: { userId },
+        where:  { userId },
         update: {
           firstName:   personal.firstName   || '',
           lastName:    personal.lastName    || '',
@@ -38,9 +44,12 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
           address:     personal.address     || null,
           city:        personal.city        || null,
           country:     personal.country     || null,
-          website:     personal.website     || null,
           photoUrl:    personal.photoUrl    || null,
           dateOfBirth: personal.dateOfBirth ? new Date(personal.dateOfBirth) : null,
+          website:     websiteUrl,
+          linkedin:    linkedinUrl,
+          github:      githubUrl,
+          links:       links.length > 0 ? links : undefined,
         },
         create: {
           userId,
@@ -51,16 +60,19 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
           address:     personal.address     || null,
           city:        personal.city        || null,
           country:     personal.country     || null,
-          website:     personal.website     || null,
           photoUrl:    personal.photoUrl    || null,
           dateOfBirth: personal.dateOfBirth ? new Date(personal.dateOfBirth) : null,
+          website:     websiteUrl,
+          linkedin:    linkedinUrl,
+          github:      githubUrl,
+          links:       links.length > 0 ? links : undefined,
         },
       })
     }
 
     // 2. Save resume + education + experience + skills + cover letter
     const resume = await prisma.resume.upsert({
-      where: { userId },
+      where:  { userId },
       update: { source: 'MANUAL' },
       create: { userId, source: 'MANUAL' },
     })
@@ -75,7 +87,7 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
           institution: e.institution || '',
           field:       e.field       || null,
           startDate:   e.startDate   ? new Date(e.startDate + '-01') : null,
-          endDate:     e.endDate     ? new Date(e.endDate + '-01')   : null,
+          endDate:     e.endDate     ? new Date(e.endDate   + '-01') : null,
           current:     e.current     || false,
           gpa:         e.gpa         || null,
           description: e.description || null,
@@ -94,7 +106,7 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
           company:     e.company     || '',
           location:    e.location    || null,
           startDate:   e.startDate   ? new Date(e.startDate + '-01') : null,
-          endDate:     e.endDate     ? new Date(e.endDate + '-01')   : null,
+          endDate:     e.endDate     ? new Date(e.endDate   + '-01') : null,
           current:     e.current     || false,
           description: e.description || null,
           order:       i,
@@ -111,8 +123,8 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
       technical.forEach((s: any) => {
         skillsToCreate.push({
           resumeId: resume.id,
-          name: typeof s === 'string' ? s : s.name,
-          type: 'TECHNICAL',
+          name:     typeof s === 'string' ? s : s.name,
+          type:     'TECHNICAL',
         })
       })
     }
@@ -121,8 +133,8 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
       soft.forEach((s: any) => {
         skillsToCreate.push({
           resumeId: resume.id,
-          name: typeof s === 'string' ? s : s.name,
-          type: 'SOFT',
+          name:     typeof s === 'string' ? s : s.name,
+          type:     'SOFT',
         })
       })
     }
@@ -131,9 +143,9 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
       languages.forEach((l: any) => {
         skillsToCreate.push({
           resumeId: resume.id,
-          name: typeof l === 'string' ? l : l.name,
-          type: 'LANGUAGE',
-          level: l.level || 'Intermediate',
+          name:     typeof l === 'string' ? l : l.name,
+          type:     'LANGUAGE',
+          level:    l.level || 'Intermediate',
         })
       })
     }
@@ -145,17 +157,17 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
     // Cover letter
     if (coverLetter) {
       await prisma.coverLetter.upsert({
-        where: { resumeId: resume.id },
+        where:  { resumeId: resume.id },
         update: {
           content: coverLetter,
-          source: coverLetterSource === 'ai' ? 'AI_GENERATED' :
-                  coverLetterSource === 'per_job' ? 'PER_JOB' : 'MANUAL',
+          source:  coverLetterSource === 'ai'      ? 'AI_GENERATED' :
+                   coverLetterSource === 'per_job'  ? 'PER_JOB'      : 'MANUAL',
         },
         create: {
           resumeId: resume.id,
-          content: coverLetter,
-          source: coverLetterSource === 'ai' ? 'AI_GENERATED' :
-                  coverLetterSource === 'per_job' ? 'PER_JOB' : 'MANUAL',
+          content:  coverLetter,
+          source:   coverLetterSource === 'ai'      ? 'AI_GENERATED' :
+                    coverLetterSource === 'per_job'  ? 'PER_JOB'      : 'MANUAL',
         },
       })
     }
@@ -170,27 +182,27 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
     }
 
     if (countries) {
-      jobPrefsData.targetCountries  = countries.selected      || []
-      jobPrefsData.openToAnywhere   = countries.openToAnywhere || false
+      jobPrefsData.targetCountries = countries.selected       || []
+      jobPrefsData.openToAnywhere  = countries.openToAnywhere || false
     }
 
     if (jobPrefs) {
-      jobPrefsData.targetTitles  = jobPrefs.titles     || []
-      jobPrefsData.industries    = jobPrefs.industries  || []
+      jobPrefsData.targetTitles = jobPrefs.titles    || []
+      jobPrefsData.industries   = jobPrefs.industries || []
     }
 
     if (situation) {
-      jobPrefsData.employmentStatus  = situation.status        || null
-      jobPrefsData.noticePeriod      = situation.noticePeriod  || null
-      jobPrefsData.salaryMin         = situation.salaryMin ? parseInt(situation.salaryMin) : null
-      jobPrefsData.salaryMax         = situation.salaryMax ? parseInt(situation.salaryMax) : null
-      jobPrefsData.salaryCurrency    = situation.currency      || null
-      jobPrefsData.availabilityDate  = situation.availableFrom ? new Date(situation.availableFrom) : null
+      jobPrefsData.employmentStatus = situation.status        || null
+      jobPrefsData.noticePeriod     = situation.noticePeriod  || null
+      jobPrefsData.salaryMin        = situation.salaryMin  ? parseInt(situation.salaryMin)  : null
+      jobPrefsData.salaryMax        = situation.salaryMax  ? parseInt(situation.salaryMax)  : null
+      jobPrefsData.salaryCurrency   = situation.currency      || null
+      jobPrefsData.availabilityDate = situation.availableFrom ? new Date(situation.availableFrom) : null
     }
 
     if (Object.keys(jobPrefsData).length > 0) {
       await prisma.jobPreferences.upsert({
-        where: { userId },
+        where:  { userId },
         update: jobPrefsData,
         create: { userId, ...jobPrefsData },
       })
@@ -199,19 +211,19 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
     // 4. Save automation settings
     if (automation || frequency) {
       await prisma.automationSettings.upsert({
-        where: { userId },
+        where:  { userId },
         update: {
-          mode:                   automation?.mode                || 'REVIEW',
-          frequency:              frequency?.frequency           || 'MANUAL',
-          applicationsPerSession: frequency?.count               || 10,
-          preferredTime:          frequency?.time                || null,
+          mode:                   automation?.mode      || 'REVIEW',
+          frequency:              frequency?.frequency  || 'MANUAL',
+          applicationsPerSession: frequency?.count      || 10,
+          preferredTime:          frequency?.time       || null,
         },
         create: {
           userId,
-          mode:                   automation?.mode                || 'REVIEW',
-          frequency:              frequency?.frequency           || 'MANUAL',
-          applicationsPerSession: frequency?.count               || 10,
-          preferredTime:          frequency?.time                || null,
+          mode:                   automation?.mode      || 'REVIEW',
+          frequency:              frequency?.frequency  || 'MANUAL',
+          applicationsPerSession: frequency?.count      || 10,
+          preferredTime:          frequency?.time       || null,
         },
       })
     }
@@ -219,7 +231,7 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
     // 5. Mark onboarding as complete
     await prisma.user.update({
       where: { id: userId },
-      data: { onboardingCompleted: true, onboardingStep: 13 },
+      data:  { onboardingCompleted: true, onboardingStep: 13 },
     })
 
     res.json({
@@ -235,13 +247,13 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
   }
 })
 
-// PUT /api/onboarding/step  — save current step progress
+// PUT /api/onboarding/step — save current step progress
 router.put('/step', authMiddleware, async (req: any, res: Response) => {
   try {
     const { step } = req.body
     await prisma.user.update({
       where: { id: req.user.id },
-      data: { onboardingStep: step },
+      data:  { onboardingStep: step },
     })
     res.json({ success: true })
   } catch (error) {

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import CustomSelect from "@/components/ui/CustomSelector";
 
 interface Props {
   onNext: (data?: Record<string, any>) => void;
@@ -11,7 +12,13 @@ interface Props {
   textPrimary: string;
   textMuted: string;
   border: string;
-  isRevisit?: boolean
+  isRevisit?: boolean;
+}
+
+interface Link {
+  id: string;
+  platform: string;
+  url: string;
 }
 
 interface FormData {
@@ -24,207 +31,336 @@ interface FormData {
   address: string;
   city: string;
   country: string;
-  website: string;
+  links: Link[];
   photoUrl: string;
 }
 
-// Nationalities data — top level
-const NATIONALITIES = [
-  { code: "AF", name: "Afghan", flag: "🇦🇫" },
-  { code: "AL", name: "Albanian", flag: "🇦🇱" },
-  { code: "DZ", name: "Algerian", flag: "🇩🇿" },
-  { code: "AD", name: "Andorran", flag: "🇦🇩" },
-  { code: "AO", name: "Angolan", flag: "🇦🇴" },
-  { code: "AG", name: "Antiguan", flag: "🇦🇬" },
-  { code: "AR", name: "Argentine", flag: "🇦🇷" },
-  { code: "AM", name: "Armenian", flag: "🇦🇲" },
-  { code: "AU", name: "Australian", flag: "🇦🇺" },
-  { code: "AT", name: "Austrian", flag: "🇦🇹" },
-  { code: "AZ", name: "Azerbaijani", flag: "🇦🇿" },
-  { code: "BS", name: "Bahamian", flag: "🇧🇸" },
-  { code: "BH", name: "Bahraini", flag: "🇧🇭" },
-  { code: "BD", name: "Bangladeshi", flag: "🇧🇩" },
-  { code: "BB", name: "Barbadian", flag: "🇧🇧" },
-  { code: "BY", name: "Belarusian", flag: "🇧🇾" },
-  { code: "BE", name: "Belgian", flag: "🇧🇪" },
-  { code: "BZ", name: "Belizean", flag: "🇧🇿" },
-  { code: "BJ", name: "Beninese", flag: "🇧🇯" },
-  { code: "BT", name: "Bhutanese", flag: "🇧🇹" },
-  { code: "BO", name: "Bolivian", flag: "🇧🇴" },
-  { code: "BA", name: "Bosnian", flag: "🇧🇦" },
-  { code: "BW", name: "Botswanan", flag: "🇧🇼" },
-  { code: "BR", name: "Brazilian", flag: "🇧🇷" },
-  { code: "BN", name: "Bruneian", flag: "🇧🇳" },
-  { code: "BG", name: "Bulgarian", flag: "🇧🇬" },
-  { code: "BF", name: "Burkinabe", flag: "🇧🇫" },
-  { code: "BI", name: "Burundian", flag: "🇧🇮" },
-  { code: "CV", name: "Cape Verdean", flag: "🇨🇻" },
-  { code: "KH", name: "Cambodian", flag: "🇰🇭" },
-  { code: "CM", name: "Cameroonian", flag: "🇨🇲" },
-  { code: "CA", name: "Canadian", flag: "🇨🇦" },
-  { code: "CF", name: "Central African", flag: "🇨🇫" },
-  { code: "TD", name: "Chadian", flag: "🇹🇩" },
-  { code: "CL", name: "Chilean", flag: "🇨🇱" },
-  { code: "CN", name: "Chinese", flag: "🇨🇳" },
-  { code: "CO", name: "Colombian", flag: "🇨🇴" },
-  { code: "KM", name: "Comorian", flag: "🇰🇲" },
-  { code: "CG", name: "Congolese", flag: "🇨🇬" },
-  { code: "CR", name: "Costa Rican", flag: "🇨🇷" },
-  { code: "HR", name: "Croatian", flag: "🇭🇷" },
-  { code: "CU", name: "Cuban", flag: "🇨🇺" },
-  { code: "CY", name: "Cypriot", flag: "🇨🇾" },
-  { code: "CZ", name: "Czech", flag: "🇨🇿" },
-  { code: "DK", name: "Danish", flag: "🇩🇰" },
-  { code: "DJ", name: "Djiboutian", flag: "🇩🇯" },
-  { code: "DM", name: "Dominican", flag: "🇩🇲" },
-  { code: "DO", name: "Dominican (Rep)", flag: "🇩🇴" },
-  { code: "EC", name: "Ecuadorian", flag: "🇪🇨" },
-  { code: "EG", name: "Egyptian", flag: "🇪🇬" },
-  { code: "SV", name: "Salvadoran", flag: "🇸🇻" },
-  { code: "GQ", name: "Equatoguinean", flag: "🇬🇶" },
-  { code: "ER", name: "Eritrean", flag: "🇪🇷" },
-  { code: "EE", name: "Estonian", flag: "🇪🇪" },
-  { code: "SZ", name: "Swazi", flag: "🇸🇿" },
-  { code: "ET", name: "Ethiopian", flag: "🇪🇹" },
-  { code: "FJ", name: "Fijian", flag: "🇫🇯" },
-  { code: "FI", name: "Finnish", flag: "🇫🇮" },
-  { code: "FR", name: "French", flag: "🇫🇷" },
-  { code: "GA", name: "Gabonese", flag: "🇬🇦" },
-  { code: "GM", name: "Gambian", flag: "🇬🇲" },
-  { code: "GE", name: "Georgian", flag: "🇬🇪" },
-  { code: "DE", name: "German", flag: "🇩🇪" },
-  { code: "GH", name: "Ghanaian", flag: "🇬🇭" },
-  { code: "GR", name: "Greek", flag: "🇬🇷" },
-  { code: "GD", name: "Grenadian", flag: "🇬🇩" },
-  { code: "GT", name: "Guatemalan", flag: "🇬🇹" },
-  { code: "GN", name: "Guinean", flag: "🇬🇳" },
-  { code: "GW", name: "Guinea-Bissauan", flag: "🇬🇼" },
-  { code: "GY", name: "Guyanese", flag: "🇬🇾" },
-  { code: "HT", name: "Haitian", flag: "🇭🇹" },
-  { code: "HN", name: "Honduran", flag: "🇭🇳" },
-  { code: "HU", name: "Hungarian", flag: "🇭🇺" },
-  { code: "IS", name: "Icelandic", flag: "🇮🇸" },
-  { code: "IN", name: "Indian", flag: "🇮🇳" },
-  { code: "ID", name: "Indonesian", flag: "🇮🇩" },
-  { code: "IR", name: "Iranian", flag: "🇮🇷" },
-  { code: "IQ", name: "Iraqi", flag: "🇮🇶" },
-  { code: "IE", name: "Irish", flag: "🇮🇪" },
-  { code: "IL", name: "Israeli", flag: "🇮🇱" },
-  { code: "IT", name: "Italian", flag: "🇮🇹" },
-  { code: "JM", name: "Jamaican", flag: "🇯🇲" },
-  { code: "JP", name: "Japanese", flag: "🇯🇵" },
-  { code: "JO", name: "Jordanian", flag: "🇯🇴" },
-  { code: "KZ", name: "Kazakhstani", flag: "🇰🇿" },
-  { code: "KE", name: "Kenyan", flag: "🇰🇪" },
-  { code: "KI", name: "I-Kiribati", flag: "🇰🇮" },
-  { code: "KP", name: "North Korean", flag: "🇰🇵" },
-  { code: "KR", name: "South Korean", flag: "🇰🇷" },
-  { code: "KW", name: "Kuwaiti", flag: "🇰🇼" },
-  { code: "KG", name: "Kyrgyz", flag: "🇰🇬" },
-  { code: "LA", name: "Laotian", flag: "🇱🇦" },
-  { code: "LV", name: "Latvian", flag: "🇱🇻" },
-  { code: "LB", name: "Lebanese", flag: "🇱🇧" },
-  { code: "LS", name: "Basotho", flag: "🇱🇸" },
-  { code: "LR", name: "Liberian", flag: "🇱🇷" },
-  { code: "LY", name: "Libyan", flag: "🇱🇾" },
-  { code: "LI", name: "Liechtensteiner", flag: "🇱🇮" },
-  { code: "LT", name: "Lithuanian", flag: "🇱🇹" },
-  { code: "LU", name: "Luxembourgish", flag: "🇱🇺" },
-  { code: "MG", name: "Malagasy", flag: "🇲🇬" },
-  { code: "MW", name: "Malawian", flag: "🇲🇼" },
-  { code: "MY", name: "Malaysian", flag: "🇲🇾" },
-  { code: "MV", name: "Maldivian", flag: "🇲🇻" },
-  { code: "ML", name: "Malian", flag: "🇲🇱" },
-  { code: "MT", name: "Maltese", flag: "🇲🇹" },
-  { code: "MH", name: "Marshallese", flag: "🇲🇭" },
-  { code: "MR", name: "Mauritanian", flag: "🇲🇷" },
-  { code: "MU", name: "Mauritian", flag: "🇲🇺" },
-  { code: "MX", name: "Mexican", flag: "🇲🇽" },
-  { code: "FM", name: "Micronesian", flag: "🇫🇲" },
-  { code: "MD", name: "Moldovan", flag: "🇲🇩" },
-  { code: "MC", name: "Monegasque", flag: "🇲🇨" },
-  { code: "MN", name: "Mongolian", flag: "🇲🇳" },
-  { code: "ME", name: "Montenegrin", flag: "🇲🇪" },
-  { code: "MA", name: "Moroccan", flag: "🇲🇦" },
-  { code: "MZ", name: "Mozambican", flag: "🇲🇿" },
-  { code: "MM", name: "Burmese", flag: "🇲🇲" },
-  { code: "NA", name: "Namibian", flag: "🇳🇦" },
-  { code: "NR", name: "Nauruan", flag: "🇳🇷" },
-  { code: "NP", name: "Nepali", flag: "🇳🇵" },
-  { code: "NL", name: "Dutch", flag: "🇳🇱" },
-  { code: "NZ", name: "New Zealander", flag: "🇳🇿" },
-  { code: "NI", name: "Nicaraguan", flag: "🇳🇮" },
-  { code: "NE", name: "Nigerien", flag: "🇳🇪" },
-  { code: "NG", name: "Nigerian", flag: "🇳🇬" },
-  { code: "MK", name: "Macedonian", flag: "🇲🇰" },
-  { code: "NO", name: "Norwegian", flag: "🇳🇴" },
-  { code: "OM", name: "Omani", flag: "🇴🇲" },
-  { code: "PK", name: "Pakistani", flag: "🇵🇰" },
-  { code: "PW", name: "Palauan", flag: "🇵🇼" },
-  { code: "PA", name: "Panamanian", flag: "🇵🇦" },
-  { code: "PG", name: "Papua New Guinean", flag: "🇵🇬" },
-  { code: "PY", name: "Paraguayan", flag: "🇵🇾" },
-  { code: "PE", name: "Peruvian", flag: "🇵🇪" },
-  { code: "PH", name: "Filipino", flag: "🇵🇭" },
-  { code: "PL", name: "Polish", flag: "🇵🇱" },
-  { code: "PT", name: "Portuguese", flag: "🇵🇹" },
-  { code: "QA", name: "Qatari", flag: "🇶🇦" },
-  { code: "RO", name: "Romanian", flag: "🇷🇴" },
-  { code: "RU", name: "Russian", flag: "🇷🇺" },
-  { code: "RW", name: "Rwandan", flag: "🇷🇼" },
-  { code: "KN", name: "Kittitian", flag: "🇰🇳" },
-  { code: "LC", name: "Saint Lucian", flag: "🇱🇨" },
-  { code: "VC", name: "Vincentian", flag: "🇻🇨" },
-  { code: "WS", name: "Samoan", flag: "🇼🇸" },
-  { code: "SM", name: "Sammarinese", flag: "🇸🇲" },
-  { code: "ST", name: "São Toméan", flag: "🇸🇹" },
-  { code: "SA", name: "Saudi", flag: "🇸🇦" },
-  { code: "SN", name: "Senegalese", flag: "🇸🇳" },
-  { code: "RS", name: "Serbian", flag: "🇷🇸" },
-  { code: "SC", name: "Seychellois", flag: "🇸🇨" },
-  { code: "SL", name: "Sierra Leonean", flag: "🇸🇱" },
-  { code: "SG", name: "Singaporean", flag: "🇸🇬" },
-  { code: "SK", name: "Slovak", flag: "🇸🇰" },
-  { code: "SI", name: "Slovenian", flag: "🇸🇮" },
-  { code: "SB", name: "Solomon Islander", flag: "🇸🇧" },
-  { code: "SO", name: "Somali", flag: "🇸🇴" },
-  { code: "ZA", name: "South African", flag: "🇿🇦" },
-  { code: "SS", name: "South Sudanese", flag: "🇸🇸" },
-  { code: "ES", name: "Spanish", flag: "🇪🇸" },
-  { code: "LK", name: "Sri Lankan", flag: "🇱🇰" },
-  { code: "SD", name: "Sudanese", flag: "🇸🇩" },
-  { code: "SR", name: "Surinamese", flag: "🇸🇷" },
-  { code: "SE", name: "Swedish", flag: "🇸🇪" },
-  { code: "CH", name: "Swiss", flag: "🇨🇭" },
-  { code: "SY", name: "Syrian", flag: "🇸🇾" },
-  { code: "TW", name: "Taiwanese", flag: "🇹🇼" },
-  { code: "TJ", name: "Tajik", flag: "🇹🇯" },
-  { code: "TZ", name: "Tanzanian", flag: "🇹🇿" },
-  { code: "TH", name: "Thai", flag: "🇹🇭" },
-  { code: "TL", name: "Timorese", flag: "🇹🇱" },
-  { code: "TG", name: "Togolese", flag: "🇹🇬" },
-  { code: "TO", name: "Tongan", flag: "🇹🇴" },
-  { code: "TT", name: "Trinidadian", flag: "🇹🇹" },
-  { code: "TN", name: "Tunisian", flag: "🇹🇳" },
-  { code: "TR", name: "Turkish", flag: "🇹🇷" },
-  { code: "TM", name: "Turkmen", flag: "🇹🇲" },
-  { code: "TV", name: "Tuvaluan", flag: "🇹🇻" },
-  { code: "UG", name: "Ugandan", flag: "🇺🇬" },
-  { code: "UA", name: "Ukrainian", flag: "🇺🇦" },
-  { code: "AE", name: "Emirati", flag: "🇦🇪" },
-  { code: "GB", name: "British", flag: "🇬🇧" },
-  { code: "US", name: "American", flag: "🇺🇸" },
-  { code: "UY", name: "Uruguayan", flag: "🇺🇾" },
-  { code: "UZ", name: "Uzbek", flag: "🇺🇿" },
-  { code: "VU", name: "Vanuatuan", flag: "🇻🇺" },
-  { code: "VE", name: "Venezuelan", flag: "🇻🇪" },
-  { code: "VN", name: "Vietnamese", flag: "🇻🇳" },
-  { code: "YE", name: "Yemeni", flag: "🇾🇪" },
-  { code: "ZM", name: "Zambian", flag: "🇿🇲" },
-  { code: "ZW", name: "Zimbabwean", flag: "🇿🇼" },
+const PLATFORMS = [
+  {
+    id: "linkedin",
+    label: "LinkedIn",
+    placeholder: "https://linkedin.com/in/yourprofile",
+    color: "#0077b5",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" />
+        <circle cx="4" cy="4" r="2" />
+      </svg>
+    ),
+  },
+  {
+    id: "github",
+    label: "GitHub",
+    placeholder: "https://github.com/username",
+    color: "#e0e0e0",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+      </svg>
+    ),
+  },
+  {
+    id: "portfolio",
+    label: "Portfolio",
+    placeholder: "https://yoursite.com",
+    color: "#6366f1",
+    icon: (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      </svg>
+    ),
+  },
+  {
+    id: "twitter",
+    label: "X / Twitter",
+    placeholder: "https://x.com/username",
+    color: "#1da1f2",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.632 5.905-5.632z" />
+      </svg>
+    ),
+  },
+  {
+    id: "behance",
+    label: "Behance",
+    placeholder: "https://behance.net/username",
+    color: "#1769ff",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7.443 5.35c.639 0 1.23.05 1.77.198.541.099.984.297 1.377.544.394.247.689.594.885 1.039.197.445.296.99.296 1.583 0 .693-.148 1.286-.492 1.731-.296.445-.788.84-1.377 1.138.836.248 1.475.694 1.869 1.336.394.643.59 1.385.59 2.226 0 .693-.148 1.287-.394 1.781-.246.495-.639.94-1.082 1.237-.443.347-.984.594-1.574.742-.59.148-1.18.247-1.82.247H0V5.35h7.443zm-.394 5.54c.541 0 .984-.148 1.328-.395.344-.247.492-.693.492-1.237 0-.297-.049-.594-.148-.792-.099-.247-.247-.395-.394-.544-.197-.148-.394-.247-.639-.296-.246-.05-.492-.099-.787-.099H3.05V10.89h4.001zm.196 5.886c.295 0 .59-.05.836-.099.245-.05.491-.148.688-.297.196-.148.344-.346.492-.594.098-.247.197-.594.197-.99 0-.742-.197-1.286-.59-1.583-.394-.297-.935-.445-1.574-.445H3.05v4.008h4.197zm10.909-1.138c.393.396.983.594 1.77.594.541 0 1.033-.148 1.426-.395.393-.296.639-.594.737-.891h2.607c-.393 1.237-1.033 2.127-1.869 2.67-.836.545-1.869.792-3.05.792-.836 0-1.573-.148-2.262-.395-.689-.247-1.23-.643-1.721-1.089-.492-.495-.836-1.04-1.082-1.731-.246-.643-.394-1.385-.394-2.177 0-.792.148-1.484.394-2.177.246-.643.639-1.237 1.082-1.731.492-.495 1.033-.891 1.721-1.138.64-.248 1.377-.396 2.164-.396.886 0 1.672.198 2.312.594.64.396 1.18.89 1.574 1.534.393.643.688 1.336.836 2.127.099.742.148 1.534.099 2.325H17.57c.05.89.295 1.534.689 1.88zm3.098-5.14c-.344-.346-.885-.544-1.574-.544-.443 0-.836.099-1.131.247-.295.148-.541.346-.737.594-.197.247-.296.445-.344.693-.05.198-.099.445-.099.594h4.689c-.099-.742-.394-1.237-.738-1.583zm-5.378-5.294h5.575v1.534h-5.575V5.35z" />
+      </svg>
+    ),
+  },
+  {
+    id: "dribbble",
+    label: "Dribbble",
+    placeholder: "https://dribbble.com/username",
+    color: "#ea4c89",
+    icon: (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32" />
+      </svg>
+    ),
+  },
+  {
+    id: "other",
+    label: "Other",
+    placeholder: "https://",
+    color: "#9090b0",
+    icon: (
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+    ),
+  },
 ];
 
-// Nationality Select — top level component
+function detectPlatform(url: string): string {
+  if (!url) return "other";
+  if (url.includes("linkedin.com")) return "linkedin";
+  if (url.includes("github.com")) return "github";
+  if (url.includes("twitter.com") || url.includes("x.com")) return "twitter";
+  if (url.includes("behance.net")) return "behance";
+  if (url.includes("dribbble.com")) return "dribbble";
+  return "portfolio";
+}
+
+function makeEmptyLink(): Link {
+  return {
+    id: Math.random().toString(36).slice(2),
+    platform: "portfolio",
+    url: "",
+  };
+}
+
+// ─── Nationality Select ───────────────────────────────────────────────────────
+const NATIONALITIES = [
+  { code: "AF", name: "Afghan" },
+  { code: "AL", name: "Albanian" },
+  { code: "DZ", name: "Algerian" },
+  { code: "AD", name: "Andorran" },
+  { code: "AO", name: "Angolan" },
+  { code: "AG", name: "Antiguan" },
+  { code: "AR", name: "Argentine" },
+  { code: "AM", name: "Armenian" },
+  { code: "AU", name: "Australian" },
+  { code: "AT", name: "Austrian" },
+  { code: "AZ", name: "Azerbaijani" },
+  { code: "BS", name: "Bahamian" },
+  { code: "BH", name: "Bahraini" },
+  { code: "BD", name: "Bangladeshi" },
+  { code: "BB", name: "Barbadian" },
+  { code: "BY", name: "Belarusian" },
+  { code: "BE", name: "Belgian" },
+  { code: "BZ", name: "Belizean" },
+  { code: "BJ", name: "Beninese" },
+  { code: "BT", name: "Bhutanese" },
+  { code: "BO", name: "Bolivian" },
+  { code: "BA", name: "Bosnian" },
+  { code: "BW", name: "Botswanan" },
+  { code: "BR", name: "Brazilian" },
+  { code: "BN", name: "Bruneian" },
+  { code: "BG", name: "Bulgarian" },
+  { code: "BF", name: "Burkinabe" },
+  { code: "BI", name: "Burundian" },
+  { code: "CV", name: "Cape Verdean" },
+  { code: "KH", name: "Cambodian" },
+  { code: "CM", name: "Cameroonian" },
+  { code: "CA", name: "Canadian" },
+  { code: "CF", name: "Central African" },
+  { code: "TD", name: "Chadian" },
+  { code: "CL", name: "Chilean" },
+  { code: "CN", name: "Chinese" },
+  { code: "CO", name: "Colombian" },
+  { code: "KM", name: "Comorian" },
+  { code: "CG", name: "Congolese" },
+  { code: "CR", name: "Costa Rican" },
+  { code: "HR", name: "Croatian" },
+  { code: "CU", name: "Cuban" },
+  { code: "CY", name: "Cypriot" },
+  { code: "CZ", name: "Czech" },
+  { code: "DK", name: "Danish" },
+  { code: "DJ", name: "Djiboutian" },
+  { code: "DM", name: "Dominican" },
+  { code: "DO", name: "Dominican (Rep)" },
+  { code: "EC", name: "Ecuadorian" },
+  { code: "EG", name: "Egyptian" },
+  { code: "SV", name: "Salvadoran" },
+  { code: "GQ", name: "Equatoguinean" },
+  { code: "ER", name: "Eritrean" },
+  { code: "EE", name: "Estonian" },
+  { code: "SZ", name: "Swazi" },
+  { code: "ET", name: "Ethiopian" },
+  { code: "FJ", name: "Fijian" },
+  { code: "FI", name: "Finnish" },
+  { code: "FR", name: "French" },
+  { code: "GA", name: "Gabonese" },
+  { code: "GM", name: "Gambian" },
+  { code: "GE", name: "Georgian" },
+  { code: "DE", name: "German" },
+  { code: "GH", name: "Ghanaian" },
+  { code: "GR", name: "Greek" },
+  { code: "GD", name: "Grenadian" },
+  { code: "GT", name: "Guatemalan" },
+  { code: "GN", name: "Guinean" },
+  { code: "GW", name: "Guinea-Bissauan" },
+  { code: "GY", name: "Guyanese" },
+  { code: "HT", name: "Haitian" },
+  { code: "HN", name: "Honduran" },
+  { code: "HU", name: "Hungarian" },
+  { code: "IS", name: "Icelandic" },
+  { code: "IN", name: "Indian" },
+  { code: "ID", name: "Indonesian" },
+  { code: "IR", name: "Iranian" },
+  { code: "IQ", name: "Iraqi" },
+  { code: "IE", name: "Irish" },
+  { code: "IL", name: "Israeli" },
+  { code: "IT", name: "Italian" },
+  { code: "JM", name: "Jamaican" },
+  { code: "JP", name: "Japanese" },
+  { code: "JO", name: "Jordanian" },
+  { code: "KZ", name: "Kazakhstani" },
+  { code: "KE", name: "Kenyan" },
+  { code: "KI", name: "I-Kiribati" },
+  { code: "KP", name: "North Korean" },
+  { code: "KR", name: "South Korean" },
+  { code: "KW", name: "Kuwaiti" },
+  { code: "KG", name: "Kyrgyz" },
+  { code: "LA", name: "Laotian" },
+  { code: "LV", name: "Latvian" },
+  { code: "LB", name: "Lebanese" },
+  { code: "LS", name: "Basotho" },
+  { code: "LR", name: "Liberian" },
+  { code: "LY", name: "Libyan" },
+  { code: "LI", name: "Liechtensteiner" },
+  { code: "LT", name: "Lithuanian" },
+  { code: "LU", name: "Luxembourgish" },
+  { code: "MG", name: "Malagasy" },
+  { code: "MW", name: "Malawian" },
+  { code: "MY", name: "Malaysian" },
+  { code: "MV", name: "Maldivian" },
+  { code: "ML", name: "Malian" },
+  { code: "MT", name: "Maltese" },
+  { code: "MH", name: "Marshallese" },
+  { code: "MR", name: "Mauritanian" },
+  { code: "MU", name: "Mauritian" },
+  { code: "MX", name: "Mexican" },
+  { code: "FM", name: "Micronesian" },
+  { code: "MD", name: "Moldovan" },
+  { code: "MC", name: "Monegasque" },
+  { code: "MN", name: "Mongolian" },
+  { code: "ME", name: "Montenegrin" },
+  { code: "MA", name: "Moroccan" },
+  { code: "MZ", name: "Mozambican" },
+  { code: "MM", name: "Burmese" },
+  { code: "NA", name: "Namibian" },
+  { code: "NR", name: "Nauruan" },
+  { code: "NP", name: "Nepali" },
+  { code: "NL", name: "Dutch" },
+  { code: "NZ", name: "New Zealander" },
+  { code: "NI", name: "Nicaraguan" },
+  { code: "NE", name: "Nigerien" },
+  { code: "NG", name: "Nigerian" },
+  { code: "MK", name: "Macedonian" },
+  { code: "NO", name: "Norwegian" },
+  { code: "OM", name: "Omani" },
+  { code: "PK", name: "Pakistani" },
+  { code: "PW", name: "Palauan" },
+  { code: "PA", name: "Panamanian" },
+  { code: "PG", name: "Papua New Guinean" },
+  { code: "PY", name: "Paraguayan" },
+  { code: "PE", name: "Peruvian" },
+  { code: "PH", name: "Filipino" },
+  { code: "PL", name: "Polish" },
+  { code: "PT", name: "Portuguese" },
+  { code: "QA", name: "Qatari" },
+  { code: "RO", name: "Romanian" },
+  { code: "RU", name: "Russian" },
+  { code: "RW", name: "Rwandan" },
+  { code: "KN", name: "Kittitian" },
+  { code: "LC", name: "Saint Lucian" },
+  { code: "VC", name: "Vincentian" },
+  { code: "WS", name: "Samoan" },
+  { code: "SM", name: "Sammarinese" },
+  { code: "ST", name: "São Toméan" },
+  { code: "SA", name: "Saudi" },
+  { code: "SN", name: "Senegalese" },
+  { code: "RS", name: "Serbian" },
+  { code: "SC", name: "Seychellois" },
+  { code: "SL", name: "Sierra Leonean" },
+  { code: "SG", name: "Singaporean" },
+  { code: "SK", name: "Slovak" },
+  { code: "SI", name: "Slovenian" },
+  { code: "SB", name: "Solomon Islander" },
+  { code: "SO", name: "Somali" },
+  { code: "ZA", name: "South African" },
+  { code: "SS", name: "South Sudanese" },
+  { code: "ES", name: "Spanish" },
+  { code: "LK", name: "Sri Lankan" },
+  { code: "SD", name: "Sudanese" },
+  { code: "SR", name: "Surinamese" },
+  { code: "SE", name: "Swedish" },
+  { code: "CH", name: "Swiss" },
+  { code: "SY", name: "Syrian" },
+  { code: "TW", name: "Taiwanese" },
+  { code: "TJ", name: "Tajik" },
+  { code: "TZ", name: "Tanzanian" },
+  { code: "TH", name: "Thai" },
+  { code: "TL", name: "Timorese" },
+  { code: "TG", name: "Togolese" },
+  { code: "TO", name: "Tongan" },
+  { code: "TT", name: "Trinidadian" },
+  { code: "TN", name: "Tunisian" },
+  { code: "TR", name: "Turkish" },
+  { code: "TM", name: "Turkmen" },
+  { code: "TV", name: "Tuvaluan" },
+  { code: "UG", name: "Ugandan" },
+  { code: "UA", name: "Ukrainian" },
+  { code: "AE", name: "Emirati" },
+  { code: "GB", name: "British" },
+  { code: "US", name: "American" },
+  { code: "UY", name: "Uruguayan" },
+  { code: "UZ", name: "Uzbek" },
+  { code: "VU", name: "Vanuatuan" },
+  { code: "VE", name: "Venezuelan" },
+  { code: "VN", name: "Vietnamese" },
+  { code: "YE", name: "Yemeni" },
+  { code: "ZM", name: "Zambian" },
+  { code: "ZW", name: "Zimbabwean" },
+];
+
 function NationalitySelect({
   value,
   onChange,
@@ -246,13 +382,11 @@ function NationalitySelect({
   const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-
   const filtered = search.trim()
     ? NATIONALITIES.filter((n) =>
         n.name.toLowerCase().includes(search.toLowerCase()),
       )
     : NATIONALITIES;
-
   const selected = NATIONALITIES.find((n) => n.name === value);
 
   useEffect(() => {
@@ -282,7 +416,6 @@ function NationalitySelect({
           color: selected ? textPrimary : textMuted,
           cursor: "pointer",
           boxShadow: open ? "0 0 0 3px rgba(99,102,241,0.15)" : "none",
-          transition: "border-color 0.2s, box-shadow 0.2s",
           textAlign: "left",
         }}
       >
@@ -292,8 +425,12 @@ function NationalitySelect({
               <img
                 src={`https://flagcdn.com/24x18/${selected.code.toLowerCase()}.png`}
                 alt={selected.name}
-                className="rounded-sm flex-shrink-0"
-                style={{ width: "20px", height: "15px", objectFit: "cover" }}
+                style={{
+                  width: "20px",
+                  height: "15px",
+                  objectFit: "cover",
+                  borderRadius: "2px",
+                }}
               />
               {selected.name}
             </>
@@ -335,7 +472,6 @@ function NationalitySelect({
               : "0 8px 40px rgba(0,0,0,0.12)",
           }}
         >
-          {/* Search */}
           <div
             className="p-2"
             style={{
@@ -386,8 +522,6 @@ function NationalitySelect({
               )}
             </div>
           </div>
-
-          {/* List */}
           <div className="overflow-y-auto" style={{ maxHeight: "220px" }}>
             {filtered.length === 0 ? (
               <div
@@ -431,8 +565,12 @@ function NationalitySelect({
                     <img
                       src={`https://flagcdn.com/24x18/${n.code.toLowerCase()}.png`}
                       alt={n.name}
-                      className="rounded-sm flex-shrink-0"
-                      style={{ width: "20px", height: "15px", objectFit: "cover" }}
+                      style={{
+                        width: "20px",
+                        height: "15px",
+                        objectFit: "cover",
+                        borderRadius: "2px",
+                      }}
                     />
                     <span>{n.name}</span>
                     {isSelected && (
@@ -462,7 +600,7 @@ function NationalitySelect({
   );
 }
 
-// Date Picker — top level component
+// ─── Date Picker ──────────────────────────────────────────────────────────────
 function DatePicker({
   value,
   onChange,
@@ -554,7 +692,6 @@ function DatePicker({
           color: displayValue ? textPrimary : textMuted,
           cursor: "pointer",
           boxShadow: open ? "0 0 0 3px rgba(99,102,241,0.15)" : "none",
-          transition: "border-color 0.2s, box-shadow 0.2s",
         }}
       >
         <span>{displayValue || "Select date of birth"}</span>
@@ -633,7 +770,6 @@ function DatePicker({
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
-
             <div className="flex items-center gap-1">
               <span
                 className="text-sm font-semibold"
@@ -658,16 +794,6 @@ function DatePicker({
                     : "1px solid transparent",
                   cursor: "pointer",
                 }}
-                onMouseEnter={(e) => {
-                  if (!showYearDropdown)
-                    e.currentTarget.style.background = dark
-                      ? "rgba(255,255,255,0.08)"
-                      : "#f0f0ff";
-                }}
-                onMouseLeave={(e) => {
-                  if (!showYearDropdown)
-                    e.currentTarget.style.background = "transparent";
-                }}
               >
                 {viewYear}
                 <svg
@@ -690,7 +816,6 @@ function DatePicker({
                 </svg>
               </button>
             </div>
-
             <button
               type="button"
               onClick={() => {
@@ -866,7 +991,99 @@ function DatePicker({
   );
 }
 
-// Main Component
+function LinkRow({
+  link,
+  platformInfo,
+  onPlatformChange,
+  onUrlChange,
+  onRemove,
+  showRemove,
+  inputBg,
+  border,
+  textPrimary,
+  textMuted,
+  dark,
+}: {
+  link: Link;
+  platformInfo: (typeof PLATFORMS)[0];
+  onPlatformChange: (id: string) => void;
+  onUrlChange: (url: string) => void;
+  onRemove: () => void;
+  showRemove: boolean;
+  inputBg: string;
+  border: string;
+  textPrimary: string;
+  textMuted: string;
+  dark: boolean;
+}) {
+  return (
+    <div className="flex gap-2 items-center">
+      {/* Platform — using CustomSelect */}
+      <div style={{ width: "150px", flexShrink: 0 }}>
+        <CustomSelect
+          value={link.platform}
+          onChange={onPlatformChange}
+          options={PLATFORMS.map((p) => ({ label: p.label, value: p.id }))}
+          dark={dark}
+          textPrimary={textPrimary}
+          textMuted={textMuted}
+          border={border}
+          accentColor={platformInfo.color}
+        />
+      </div>
+
+      {/* URL input */}
+      <input
+        type="url"
+        value={link.url}
+        onChange={(e) => onUrlChange(e.target.value)}
+        placeholder={platformInfo.placeholder}
+        className="flex-1 rounded-xl px-4 py-2.5 text-sm outline-none transition-all"
+        style={{
+          background: inputBg,
+          border: `1px solid ${border}`,
+          color: textPrimary,
+        }}
+      />
+
+      {/* Remove */}
+      {showRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="w-9 h-9 flex items-center justify-center rounded-xl cursor-pointer flex-shrink-0 transition-all"
+          style={{
+            background: "rgba(248,113,113,0.1)",
+            color: "#f87171",
+            border: "1px solid rgba(248,113,113,0.2)",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = "rgba(248,113,113,0.2)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.background = "rgba(248,113,113,0.1)")
+          }
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Step2Personal({
   onNext,
   onBack,
@@ -875,10 +1092,42 @@ export default function Step2Personal({
   textPrimary,
   textMuted,
   border,
-  isRevisit
+  isRevisit,
 }: Props) {
   const extracted = data?.extractedData || {};
   const saved = data?.personal || {};
+
+  const buildInitialLinks = (): Link[] => {
+    if (saved.links && saved.links.length > 0) {
+      return saved.links.map((l: any) => ({
+        id: l.id || Math.random().toString(36).slice(2),
+        platform: l.platform || "portfolio",
+        url: l.url || "",
+      }));
+    }
+    const links: Link[] = [];
+    const ext = extracted;
+    if (ext.linkedin || saved.linkedin)
+      links.push({
+        id: Math.random().toString(36).slice(2),
+        platform: "linkedin",
+        url: ext.linkedin || saved.linkedin,
+      });
+    if (ext.github || saved.github)
+      links.push({
+        id: Math.random().toString(36).slice(2),
+        platform: "github",
+        url: ext.github || saved.github,
+      });
+    if (ext.website || saved.website)
+      links.push({
+        id: Math.random().toString(36).slice(2),
+        platform: detectPlatform(ext.website || saved.website),
+        url: ext.website || saved.website,
+      });
+    return links.length > 0 ? links : [makeEmptyLink()];
+  };
+
   const [form, setForm] = useState<FormData>({
     firstName: saved.firstName || extracted.firstName || "",
     lastName: saved.lastName || extracted.lastName || "",
@@ -889,12 +1138,12 @@ export default function Step2Personal({
     address: saved.address || extracted.address || "",
     city: saved.city || extracted.city || "",
     country: saved.country || extracted.country || "",
-    website: saved.website || extracted.website || "",
+    links: buildInitialLinks(),
     photoUrl: saved.photoUrl || "",
   });
 
   const photoInputRef = useRef<HTMLInputElement>(null);
-  const valid = form.firstName && form.lastName && form.email;
+  const valid = !!(form.firstName && form.lastName && form.email);
   const inputBg = dark ? "rgba(255,255,255,0.05)" : "#ffffff";
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -905,6 +1154,17 @@ export default function Step2Personal({
       setForm((f) => ({ ...f, photoUrl: reader.result as string }));
     reader.readAsDataURL(file);
   };
+
+  const updateLink = (id: string, key: keyof Link, value: string) =>
+    setForm((f) => ({
+      ...f,
+      links: f.links.map((l) => (l.id === id ? { ...l, [key]: value } : l)),
+    }));
+
+  const addLink = () =>
+    setForm((f) => ({ ...f, links: [...f.links, makeEmptyLink()] }));
+  const removeLink = (id: string) =>
+    setForm((f) => ({ ...f, links: f.links.filter((l) => l.id !== id) }));
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">
@@ -1034,6 +1294,7 @@ export default function Step2Personal({
 
         {/* Form grid */}
         <div className="grid grid-cols-2 gap-4 mb-8">
+          {/* First Name */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1057,6 +1318,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Last Name */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1080,6 +1342,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Email */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1103,6 +1366,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Phone */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1126,6 +1390,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Date of Birth */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1144,6 +1409,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Nationality */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1162,6 +1428,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Address */}
           <div className="col-span-2">
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1185,6 +1452,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* City */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1206,6 +1474,7 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Country */}
           <div>
             <label
               className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
@@ -1229,27 +1498,97 @@ export default function Step2Personal({
             />
           </div>
 
+          {/* Links */}
           <div className="col-span-2">
-            <label
-              className="block text-xs font-semibold uppercase tracking-wide mb-1.5"
-              style={{ color: textMuted }}
-            >
-              Portfolio / Website
-            </label>
-            <input
-              type="url"
-              value={form.website}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, website: e.target.value }))
-              }
-              placeholder="https://yoursite.com"
-              className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-              style={{
-                background: inputBg,
-                border: `1px solid ${border}`,
-                color: textPrimary,
-              }}
-            />
+            <div className="flex items-center justify-between mb-3">
+              <label
+                className="text-xs font-semibold uppercase tracking-wide"
+                style={{ color: textMuted }}
+              >
+                Links & Profiles
+              </label>
+              <button
+                type="button"
+                onClick={addLink}
+                className="flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-all px-3 py-1.5 rounded-lg"
+                style={{
+                  color: "#6366f1",
+                  background: "rgba(99,102,241,0.1)",
+                  border: "1px solid rgba(99,102,241,0.2)",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "rgba(99,102,241,0.2)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "rgba(99,102,241,0.1)")
+                }
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add link
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {form.links.map((link) => {
+                const platformInfo =
+                  PLATFORMS.find((p) => p.id === link.platform) ||
+                  PLATFORMS[PLATFORMS.length - 1];
+                return (
+                  <LinkRow
+                    key={link.id}
+                    link={link}
+                    platformInfo={platformInfo}
+                    onPlatformChange={(pid) =>
+                      updateLink(link.id, "platform", pid)
+                    }
+                    onUrlChange={(url) => {
+                      const detected = detectPlatform(url);
+                      const knownPlatforms = [
+                        "linkedin",
+                        "github",
+                        "twitter",
+                        "behance",
+                        "dribbble",
+                      ];
+                      setForm((f) => ({
+                        ...f,
+                        links: f.links.map((l) =>
+                          l.id === link.id
+                            ? {
+                                ...l,
+                                url,
+                                // Only auto-switch if it's a definitively known platform
+                                platform: knownPlatforms.includes(detected)
+                                  ? detected
+                                  : l.platform,
+                              }
+                            : l,
+                        ),
+                      }));
+                    }}
+                    onRemove={() => removeLink(link.id)}
+                    showRemove={form.links.length > 1}
+                    inputBg={inputBg}
+                    border={border}
+                    textPrimary={textPrimary}
+                    textMuted={textMuted}
+                    dark={dark}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
       </motion.div>
@@ -1274,14 +1613,14 @@ export default function Step2Personal({
         </button>
         <button
           onClick={() => onNext({ personal: form })}
-          disabled={!valid}
+          disabled={!isRevisit && !valid}
           className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer transition-all"
           style={{
-            background: valid ? "#6366f1" : border,
-            color: valid ? "#ffffff" : textMuted,
+            background: isRevisit || valid ? "#6366f1" : border,
+            color: isRevisit || valid ? "#ffffff" : textMuted,
           }}
         >
-          {isRevisit ? 'Next →' : 'Continue →'}
+          {isRevisit ? "Next →" : "Continue →"}
         </button>
       </motion.div>
     </div>

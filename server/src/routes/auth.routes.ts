@@ -3,6 +3,7 @@ import passport from '../lib/passport'
 import jwt from 'jsonwebtoken'
 import { register, login, getMe } from '../controllers/auth.controller'
 import { authMiddleware } from '../middleware/auth.middleware'
+import prisma from '../lib/prisma'
 
 const router = Router()
 
@@ -21,36 +22,45 @@ router.get('/google',
   })
 )
 
+// GET /api/auth/google/callback
 router.get('/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_failed` }),
   async (req: any, res) => {
     try {
       const user = req.user as any
 
+      // Fetch fresh user from DB to get correct onboardingCompleted
+      const freshUser = await prisma.user.findUnique({
+        where:   { id: user.id },
+        include: { profile: true },
+      })
+
+      if (!freshUser) {
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=google_failed`)
+      }
+
       const token = jwt.sign(
-        { id: user.id, email: user.email },
+        { id: freshUser.id, email: freshUser.email },
         process.env.JWT_SECRET || 'secret',
         { expiresIn: '7d' }
       )
 
       const userData = {
-        id:                  user.id,
-        email:               user.email,
-        plan:                user.plan,
-        onboardingCompleted: user.onboardingCompleted,
-        onboardingStep:      user.onboardingStep,
-        firstName:           user.profile?.firstName || '',
-        lastName:            user.profile?.lastName  || '',
+        id:                  freshUser.id,
+        email:               freshUser.email,
+        plan:                freshUser.plan,
+        onboardingCompleted: freshUser.onboardingCompleted,
+        onboardingStep:      freshUser.onboardingStep,
+        firstName:           freshUser.profile?.firstName || '',
+        lastName:            freshUser.profile?.lastName  || '',
       }
 
-      // Generate a short-lived temp code (5 minutes)
       const tempCode = jwt.sign(
         { token, user: userData },
         process.env.JWT_SECRET || 'secret',
         { expiresIn: '5m' }
       )
 
-      // Only pass the temp code in URL — not the real token
       res.redirect(`${process.env.FRONTEND_URL}/auth/google/callback?code=${tempCode}`)
     } catch (error) {
       res.redirect(`${process.env.FRONTEND_URL}/login?error=google_failed`)
