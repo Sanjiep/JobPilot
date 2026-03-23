@@ -12,6 +12,7 @@ interface Props {
   textPrimary: string;
   textMuted: string;
   border: string;
+  isRevisit?: boolean;
 }
 
 const ALL_TECHNICAL = [
@@ -280,12 +281,7 @@ const ALL_LANGUAGES = [
   "Zulu",
 ];
 
-const LEVELS = [
-  "Beginner",
-  "Intermediate",
-  "Advanced",
-  "Native",
-];
+const LEVELS = ["Beginner", "Intermediate", "Advanced", "Native"];
 
 interface Tag {
   id: string;
@@ -493,14 +489,43 @@ export default function Step5Skills({
   textPrimary,
   textMuted,
   border,
+  isRevisit,
 }: Props) {
-  const [technical, setTechnical] = useState<Tag[]>(data?.technical ?? []);
-  const [soft, setSoft] = useState<Tag[]>(data?.soft ?? []);
-  const [languages, setLanguages] = useState<Tag[]>(data?.languages ?? []);
+  const extracted = data?.extractedData || {};
+
+  const [technical, setTechnical] = useState<Tag[]>(
+    data?.technical?.length > 0 && data.technical.some((t: any) => t.name)
+      ? data.technical
+      : (extracted.technical || []).map((s: string) => ({
+          id: Math.random().toString(36).slice(2),
+          name: s,
+        })),
+  );
+  const [soft, setSoft] = useState<Tag[]>(
+    data?.soft?.length > 0 && data.soft.some((t: any) => t.name)
+      ? data.soft
+      : (extracted.soft || []).map((s: string) => ({
+          id: Math.random().toString(36).slice(2),
+          name: s,
+        })),
+  );
+  const [languages, setLanguages] = useState<Tag[]>(
+    data?.languages?.length > 0 && data.languages.some((l: any) => l.name)
+      ? data.languages
+      : (extracted.languages || []).map((l: any) => ({
+          id: Math.random().toString(36).slice(2),
+          name: typeof l === "string" ? l : l.name,
+          level: l.level || "Intermediate",
+        })),
+  );
+  const [certs, setCerts] = useState(
+    data?.certifications && data.certifications.length > 0
+      ? data.certifications
+      : extracted.certifications || "",
+  );
   const [techInput, setTechInput] = useState("");
   const [softInput, setSoftInput] = useState("");
   const [langInput, setLangInput] = useState("");
-  const [certs, setCerts] = useState(data?.certifications ?? "");
 
   const inputBg = dark ? "rgba(255,255,255,0.05)" : "#ffffff";
   const cardBg = dark ? "#0e0e1a" : "#f5f5ff";
@@ -873,12 +898,14 @@ export default function Step5Skills({
         </button>
         <button
           onClick={() =>
-            onNext({ technical, soft, languages, certifications: certs })
+            isRevisit
+              ? onNext()
+              : onNext({ technical, soft, languages, certifications: certs })
           }
           className="flex-1 py-3 rounded-xl font-semibold text-sm cursor-pointer"
           style={{ background: "#6366f1", color: "#ffffff" }}
         >
-          Continue →
+          {isRevisit ? "Next →" : "Continue →"}
         </button>
       </div>
     </div>

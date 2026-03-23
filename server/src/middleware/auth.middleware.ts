@@ -7,7 +7,7 @@ export interface AuthRequest extends Request {
   user?: { id: string; email: string; plan: string }
 }
 
-export const authenticate = async (
+export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction,

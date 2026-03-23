@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/ui/logo";
@@ -166,6 +166,14 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search)
+  const err = params.get('error')
+  if (err === 'google_failed') {
+    setError('Google sign in failed. Please try again.')
+  }
+}, [])
 
   const border = dark ? "#1e1e32" : "#e2e4f0";
   const textPrimary = dark ? "#ffffff" : "#0a0a14";
@@ -590,6 +598,9 @@ export default function RegisterPage() {
 
             {/* Google */}
             <button
+              onClick={() =>
+                (window.location.href = "http://localhost:8000/api/auth/google")
+              }
               className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer"
               style={{
                 background: "transparent",

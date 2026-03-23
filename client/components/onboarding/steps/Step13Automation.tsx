@@ -25,7 +25,7 @@ const modes = [
     badgeColor: '#34d399',
     color: '#6366f1',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-bot-icon lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot-icon lucide-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
     ),
     features: ['Applies automatically every day', 'Daily email summary', 'Best for high volume'],
   },
@@ -74,21 +74,35 @@ export default function Step13Automation({ onNext, onBack, data, dark, textPrima
   const cardBg = dark ? '#0e0e1a' : '#f5f5ff'
 
   const handleFinish = async () => {
-    setSaving(true)
-    try {
-      await api.put('/api/automation', { mode: selected })
-      await api.put('/api/profile', {
-        ...data.personal,
-        onboardingCompleted: true,
-      })
-      updateUser({ onboardingCompleted: true })
-      onNext({ automation: { mode: selected } })
-    } catch {
-      onNext({ automation: { mode: selected } })
-    } finally {
-      setSaving(false)
-    }
+  setSaving(true)
+  try {
+    await api.post('/api/onboarding/complete', {
+      personal:          data.personal,
+      education:         data.education,
+      experience:        data.experience,
+      technical:         data.technical,
+      soft:              data.soft,
+      languages:         data.languages,
+      certifications:    data.certifications,
+      coverLetter:       data.coverLetter,
+      coverLetterSource: data.coverLetterSource,
+      situation:         data.situation,
+      workPrefs:         data.workPrefs,
+      countries:         data.countries,
+      jobPrefs:          data.jobPrefs,
+      frequency:         data.frequency,
+      automation:        { mode: selected },
+    })
+    updateUser({ onboardingCompleted: true })
+    onNext({ automation: { mode: selected } })
+  } catch (err) {
+    console.error('Failed to save onboarding', err)
+    // Still navigate to dashboard even if save fails
+    onNext({ automation: { mode: selected } })
+  } finally {
+    setSaving(false)
   }
+}
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">

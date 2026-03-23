@@ -123,6 +123,14 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err === "google_failed") {
+      setError("Google sign in failed. Please try again.");
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -413,6 +421,9 @@ export default function LoginPage() {
 
             {/* Google */}
             <button
+              onClick={() =>
+                (window.location.href = "http://localhost:8000/api/auth/google")
+              }
               className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer"
               style={{
                 background: "transparent",

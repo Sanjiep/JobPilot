@@ -112,6 +112,8 @@ model Resume {
   userId      String       @unique
   rawText     String?
   filePath    String?
+  cvFileUrl   String?
+  cvFileName  String?
   linkedinUrl String?
   source      ResumeSource @default(MANUAL)
   createdAt   DateTime     @default(now())
