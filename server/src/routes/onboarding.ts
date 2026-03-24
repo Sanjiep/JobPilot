@@ -26,14 +26,15 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
       automation,
     } = req.body
 
+    const links = personal?.links || []
+    const linkedinUrl = links.find((l: any) => l.platform === 'linkedin')?.url || null
+    const websiteUrl =
+      links.find((l: any) => ['portfolio', 'other', 'dribbble', 'behance', 'twitter'].includes(l.platform))?.url ||
+      personal?.website ||
+      null
+
     // 1. Save profile
     if (personal) {
-      const links = personal.links || []
-
-      const linkedinUrl  = links.find((l: any) => l.platform === 'linkedin')?.url  || null
-      const githubUrl    = links.find((l: any) => l.platform === 'github')?.url    || null
-      const websiteUrl   = links.find((l: any) => ['portfolio', 'other', 'dribbble', 'behance', 'twitter'].includes(l.platform))?.url || personal.website || null
-
       await prisma.profile.upsert({
         where:  { userId },
         update: {
@@ -47,9 +48,6 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
           photoUrl:    personal.photoUrl    || null,
           dateOfBirth: personal.dateOfBirth ? new Date(personal.dateOfBirth) : null,
           website:     websiteUrl,
-          linkedin:    linkedinUrl,
-          github:      githubUrl,
-          links:       links.length > 0 ? links : undefined,
         },
         create: {
           userId,
@@ -63,9 +61,6 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
           photoUrl:    personal.photoUrl    || null,
           dateOfBirth: personal.dateOfBirth ? new Date(personal.dateOfBirth) : null,
           website:     websiteUrl,
-          linkedin:    linkedinUrl,
-          github:      githubUrl,
-          links:       links.length > 0 ? links : undefined,
         },
       })
     }
@@ -73,8 +68,15 @@ router.post('/complete', authMiddleware, async (req: any, res: Response) => {
     // 2. Save resume + education + experience + skills + cover letter
     const resume = await prisma.resume.upsert({
       where:  { userId },
-      update: { source: 'MANUAL' },
-      create: { userId, source: 'MANUAL' },
+      update: {
+        source: 'MANUAL',
+        linkedinUrl,
+      },
+      create: {
+        userId,
+        source: 'MANUAL',
+        linkedinUrl,
+      },
     })
 
     // Education
