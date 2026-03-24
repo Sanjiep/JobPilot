@@ -2,6 +2,12 @@
 
 @import "tailwindcss";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
   --bg-primary: #ffffff;
   --bg-secondary: #f8f9ff;
@@ -22,11 +28,30 @@
   --text-muted: #505070;
 }
 
+html,
 body {
+  margin: 0;
+  padding: 0;
   font-family: 'Google Sans', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s, color 0.3s;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -146,4 +171,3 @@ h1, h2, h3, h4, h5, h6 {
 .react-datepicker-popper {
   z-index: 9999 !important;
 }
-
